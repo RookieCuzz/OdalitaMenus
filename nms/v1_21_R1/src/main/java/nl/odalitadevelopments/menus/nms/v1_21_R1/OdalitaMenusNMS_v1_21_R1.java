@@ -81,7 +81,10 @@ public final class OdalitaMenusNMS_v1_21_R1 implements OdalitaMenusNMS {
 
     @Override
     public Component createChatBaseComponent(String string) {
-        return CraftChatMessage.fromJSONOrNull("{\"text\":\"" + string + "\"}");
+        System.out.println(string);
+        System.out.println("nms nms nms");
+        return CraftChatMessage.fromJSONOrNull(string);
+//        return CraftChatMessage.fromJSONOrNull("{\"text\":\"" + string + "\"}");
     }
 
     @Override
@@ -108,6 +111,7 @@ public final class OdalitaMenusNMS_v1_21_R1 implements OdalitaMenusNMS {
 
     @Override
     public synchronized void changeInventoryTitle(Inventory inventory, String title) throws Exception {
+        System.out.println("1111111111");
         if (inventory.getViewers().isEmpty()) {
             Container nmsInventory = ((CraftInventory) inventory).getInventory();
 
@@ -122,13 +126,13 @@ public final class OdalitaMenusNMS_v1_21_R1 implements OdalitaMenusNMS {
                 Object minecraftInventory = MINECRAFT_INVENTORY.cast(nmsInventory);
 
                 MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(true);
-                MINECRAFT_INVENTORY_TITLE_FIELD.set(minecraftInventory, PaperComponents.plainSerializer().deserialize(title));
+                MINECRAFT_INVENTORY_TITLE_FIELD.set(minecraftInventory, PaperComponents.gsonSerializer().deserialize(title));
                 MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(false);
             }
 
             return;
         }
-
+        System.out.println("22222222222222222222222");
         Component titleComponent = this.createChatBaseComponent(title);
 
         for (HumanEntity viewer : inventory.getViewers()) {

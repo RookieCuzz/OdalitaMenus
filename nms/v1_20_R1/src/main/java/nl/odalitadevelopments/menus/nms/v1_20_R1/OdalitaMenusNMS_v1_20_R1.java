@@ -2,6 +2,11 @@ package nl.odalitadevelopments.menus.nms.v1_20_R1;
 
 import io.netty.channel.Channel;
 import io.papermc.paper.text.PaperComponents;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+//import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -82,6 +87,8 @@ public final class OdalitaMenusNMS_v1_20_R1 implements OdalitaMenusNMS {
 
     @Override
     public Component createChatBaseComponent(String string) {
+
+
         return CraftChatMessage.fromJSONOrNull("{\"text\":\"" + string + "\"}");
     }
 
@@ -130,8 +137,13 @@ public final class OdalitaMenusNMS_v1_20_R1 implements OdalitaMenusNMS {
             return;
         }
 
-        Component titleComponent = this.createChatBaseComponent(title);
 
+////        net.kyori.adventure.text.Component textComponent = net.kyori.adventure.text.Component.text("我是第一行 ")
+////        .color(TextColor.color(0x443344)).font(Key.key("minecraft", "example/line1_font"))// Dark grayish color
+////        .append(net.kyori.adventure.text.Component.text("我ꐢ是第二ꐭ行", NamedTextColor.LIGHT_PURPLE).font(Key.key("minecraft", "example/line2_font")) ) // Light purple "Bunny"// Custom f
+////        .append(net.kyori.adventure.text.Component.text("我ꐣ是第三ꐮ行", NamedTextColor.YELLOW).font(Key.key("minecraft", "example/line3_font")) );
+////        final String jsonText = GsonComponentSerializer.gson().serialize(textComponent);
+        Component titleComponent = this.createChatBaseComponent(title);
         for (HumanEntity viewer : inventory.getViewers()) {
             if (!(viewer instanceof Player player)) continue;
 

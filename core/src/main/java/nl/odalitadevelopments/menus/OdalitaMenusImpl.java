@@ -159,7 +159,7 @@ final class OdalitaMenusImpl implements OdalitaMenus, Listener {
             method.setAccessible(false);
         } catch (Exception exception) {
             OdalitaLogger.error(exception);
-            Bukkit.getServer().shutdown();
+//            Bukkit.getServer().shutdown();
         }
     }
 
