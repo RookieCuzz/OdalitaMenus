@@ -1,4 +1,4 @@
-package nl.odalitadevelopments.menus.nms.v1_20_R3;
+package nl.odalitadevelopments.menus.nms.v1_21_R2;
 
 import io.netty.channel.Channel;
 import io.papermc.paper.text.PaperComponents;
@@ -17,14 +17,13 @@ import nl.odalitadevelopments.menus.nms.OdalitaMenusNMS;
 import nl.odalitadevelopments.menus.nms.packet.ClientboundSetContentsPacket;
 import nl.odalitadevelopments.menus.nms.packet.ClientboundSetSlotPacket;
 import nl.odalitadevelopments.menus.nms.utils.OdalitaLogger;
-import nl.odalitadevelopments.menus.nms.utils.PaperHelper;
 import nl.odalitadevelopments.menus.nms.utils.ReflectionUtils;
-import nl.odalitadevelopments.menus.nms.v1_20_R3.packet.ClientboundSetContentsPacket_v1_20_R3;
-import nl.odalitadevelopments.menus.nms.v1_20_R3.packet.ClientboundSetSlotPacket_v1_20_R3;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftInventory;
-import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_20_R3.util.CraftChatMessage;
+import nl.odalitadevelopments.menus.nms.v1_21_R2.packet.ClientboundSetContentsPacket_v1_21_R3;
+import nl.odalitadevelopments.menus.nms.v1_21_R2.packet.ClientboundSetSlotPacket_v1_21_R3;
+import org.bukkit.craftbukkit.v1_21_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_21_R3.inventory.CraftInventory;
+import org.bukkit.craftbukkit.v1_21_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_21_R3.util.CraftChatMessage;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryEvent;
@@ -34,8 +33,9 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.Field;
 import java.util.List;
 
-public final class OdalitaMenusNMS_v1_20_R3 implements OdalitaMenusNMS {
+public final class OdalitaMenusNMS_v1_21_R3 implements OdalitaMenusNMS {
 
+    private static Class<?> PAPER_CUSTOM_HOLDER_CONTAINER;
     private static Class<?> MINECRAFT_INVENTORY;
 
     private static Field MINECRAFT_INVENTORY_TITLE_FIELD;
@@ -46,17 +46,15 @@ public final class OdalitaMenusNMS_v1_20_R3 implements OdalitaMenusNMS {
 
     static {
         try {
-            MINECRAFT_INVENTORY = ReflectionUtils.obcClass("inventory.CraftInventoryCustom$MinecraftInventory");
+            PAPER_CUSTOM_HOLDER_CONTAINER = ReflectionUtils.paperClass("inventory.PaperInventoryCustomHolderContainer");
+            MINECRAFT_INVENTORY = ReflectionUtils.cbClass("inventory.CraftInventoryCustom$MinecraftInventory");
 
-            MINECRAFT_INVENTORY_TITLE_FIELD = MINECRAFT_INVENTORY.getDeclaredField("title");
-
-            if (PaperHelper.IS_PAPER) {
-                PAPER_MINECRAFT_INVENTORY_TITLE_FIELD = MINECRAFT_INVENTORY.getDeclaredField("adventure$title");
-            }
+            PAPER_MINECRAFT_INVENTORY_TITLE_FIELD = PAPER_CUSTOM_HOLDER_CONTAINER.getDeclaredField("adventure$title");
+            MINECRAFT_INVENTORY_TITLE_FIELD = MINECRAFT_INVENTORY.getDeclaredField("adventure$title");
 
             TITLE_FIELD = AbstractContainerMenu.class.getDeclaredField("title");
-            WINDOW_ID_FIELD = AbstractContainerMenu.class.getDeclaredField(ObfuscatedNames_v1_20_R3.WINDOW_ID);
-            NETWORK_MANAGER_FIELD = ServerCommonPacketListenerImpl.class.getDeclaredField(ObfuscatedNames_v1_20_R3.NETWORK_MANAGER);
+            WINDOW_ID_FIELD = AbstractContainerMenu.class.getDeclaredField(ObfuscatedNames_v1_21_R3.WINDOW_ID);
+            NETWORK_MANAGER_FIELD = ServerCommonPacketListenerImpl.class.getDeclaredField(ObfuscatedNames_v1_21_R3.NETWORK_MANAGER);
         } catch (Exception exception) {
             OdalitaLogger.error(exception);
         }
@@ -120,18 +118,18 @@ public final class OdalitaMenusNMS_v1_20_R3 implements OdalitaMenusNMS {
             Container nmsInventory = ((CraftInventory) inventory).getInventory();
 
             // If it's a custom inventory change the title, if not, do nothing cause the updated title will be sent when the inventory is opened
-            if (MINECRAFT_INVENTORY.isInstance(nmsInventory)) {
+            if (PAPER_CUSTOM_HOLDER_CONTAINER.isInstance(nmsInventory)) {
+                Object minecraftInventory = PAPER_CUSTOM_HOLDER_CONTAINER.cast(nmsInventory);
+
+                PAPER_MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(true);
+                PAPER_MINECRAFT_INVENTORY_TITLE_FIELD.set(minecraftInventory, PaperComponents.plainSerializer().deserialize(title));
+                PAPER_MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(false);
+            } else if (MINECRAFT_INVENTORY.isInstance(nmsInventory)) {
                 Object minecraftInventory = MINECRAFT_INVENTORY.cast(nmsInventory);
 
                 MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(true);
-                MINECRAFT_INVENTORY_TITLE_FIELD.set(minecraftInventory, title);
+                MINECRAFT_INVENTORY_TITLE_FIELD.set(minecraftInventory, PaperComponents.plainSerializer().deserialize(title));
                 MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(false);
-
-                if (PaperHelper.IS_PAPER) {
-                    PAPER_MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(true);
-                    PAPER_MINECRAFT_INVENTORY_TITLE_FIELD.set(minecraftInventory, PaperComponents.plainSerializer().deserialize(title));
-                    PAPER_MINECRAFT_INVENTORY_TITLE_FIELD.setAccessible(false);
-                }
             }
 
             return;
@@ -296,7 +294,7 @@ public final class OdalitaMenusNMS_v1_20_R3 implements OdalitaMenusNMS {
             return null;
         }
 
-        return new ClientboundSetSlotPacket_v1_20_R3(clientboundContainerSetSlotPacket);
+        return new ClientboundSetSlotPacket_v1_21_R3(clientboundContainerSetSlotPacket);
     }
 
     @Override
@@ -305,7 +303,7 @@ public final class OdalitaMenusNMS_v1_20_R3 implements OdalitaMenusNMS {
             return null;
         }
 
-        return new ClientboundSetContentsPacket_v1_20_R3(clientboundContainerSetContentPacket);
+        return new ClientboundSetContentsPacket_v1_21_R3(clientboundContainerSetContentPacket);
     }
 
     @Override
